@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAE INDUSTRIES</title>
+    <style>
+        :root {
+            --primary: #00f3ff;
+            --danger: #ff003c;
+            --bg-deep: #050505;
+            --panel-bg: rgba(15, 15, 18, 0.85);
+            --border-color: rgba(0, 243, 255, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
+
+        body { background-color: var(--bg-deep); color: #fff; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; }
+
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            z-index: 9999; pointer-events: none; opacity: 0.6;
+        }
+
+        .top-stats {
+            display: flex; justify-content: space-between; padding: 10px 5%; background: #000;
+            border-bottom: 1px solid var(--danger); font-size: 0.85rem; color: var(--danger);
+            text-transform: uppercase; letter-spacing: 2px;
+            animation: fadeInDown 1s ease;
+        }
+
+        .hero { padding: 6rem 5% 4rem; display: flex; flex-direction: column; justify-content: center; position: relative; }
+
+        .hero-inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+
+        .hero-text { flex: 1; min-width: 280px; }
+
+        .glitch-wrapper {
+            font-size: 5rem; font-weight: 900; text-transform: uppercase; position: relative;
+            display: inline-block; margin-bottom: 1rem; font-family: 'Segoe UI', sans-serif; letter-spacing: -2px;
+            animation: fadeInUp 1s ease; cursor: move; user-select: none;
+        }
+
+        .glitch { position: relative; color: white; text-shadow: 0 0 20px rgba(0,243,255,0.4); }
+        .glitch::before, .glitch::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-deep);
+        }
+        .glitch::before { left: 3px; text-shadow: -2px 0 var(--danger); animation: glitch-anim 2s infinite linear alternate-reverse; clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%); }
+        .glitch::after { left: -3px; text-shadow: -2px 0 var(--primary); animation: glitch-anim 3s infinite linear alternate-reverse; clip-path: polygon(0 66%, 100% 66%, 100% 100%, 0 100%); }
+
+        @keyframes glitch-anim {
+            0% { clip-path: polygon(0 2%, 100% 2%, 100% 5%, 0 5%); }
+            20% { clip-path: polygon(0 15%, 100% 15%, 100% 15%, 0 15%); }
+            40% { clip-path: polygon(0 10%, 100% 10%, 100% 20%, 0 20%); }
+            60% { clip-path: polygon(0 1%, 100% 1%, 100% 2%, 0 2%); }
+            80% { clip-path: polygon(0 33%, 100% 33%, 100% 33%, 0 33%); }
+            100% { clip-path: polygon(0 44%, 100% 44%, 100% 44%, 0 44%); }
+        }
+
+        .subtitle { color: #888; font-size: 1.1rem; max-width: 600px; animation: fadeInUp 1s ease 0.2s both; cursor: move; user-select: none; }
+
+        /* CUSTOMIZE TOGGLE BUTTON */
+        .customize-toggle {
+            flex: 0 0 auto; animation: fadeInUp 1s ease 0.3s both; align-self: flex-start;
+        }
+        .cp-toggle-btn {
+            background: rgba(10,10,14,0.9); border: 1px solid rgba(0,243,255,0.2);
+            color: var(--primary); font-family: 'Courier New', monospace; font-size: 0.75rem;
+            letter-spacing: 2px; text-transform: uppercase; padding: 10px 16px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px; transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+        .cp-toggle-btn:hover { border-color: var(--primary); background: rgba(0,243,255,0.06); }
+        .cp-toggle-icon { font-size: 1rem; transition: transform 0.3s ease; }
+        .cp-toggle-btn.open .cp-toggle-icon { transform: rotate(45deg); }
+
+        /* CUSTOMIZE PANEL */
+        .customize-panel {
+            flex: 0 0 auto; background: rgba(10,10,14,0.9); border: 1px solid rgba(0,243,255,0.2);
+            padding: 1.5rem; min-width: 260px; max-width: 300px;
+            position: relative; display: none; margin-top: 0.5rem;
+        }
+        .customize-panel.open { display: block; animation: fadeInUp 0.3s ease; }
+        .customize-panel h4 {
+            font-size: 0.75rem; color: var(--primary); letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: 1.2rem; border-bottom: 1px solid rgba(0,243,255,0.15); padding-bottom: 8px;
+        }
+        .cp-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 1rem; }
+        .cp-label { font-size: 0.7rem; color: #888; text-transform: uppercase; letter-spacing: 1px; flex: 1; }
+        .cp-color { width: 28px; height: 28px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; cursor: pointer; padding: 2px; background: none; }
+        .cp-range { width: 100px; accent-color: var(--primary); cursor: pointer; }
+        .cp-reset {
+            width: 100%; padding: 8px; background: transparent; border: 1px solid var(--danger);
+            color: var(--danger); font-family: 'Courier New', monospace; font-size: 0.7rem;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer; margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        .cp-reset:hover { background: var(--danger); color: #000; }
+        .cp-note { font-size: 0.6rem; color: #444; text-align: center; margin-top: 0.5rem; letter-spacing: 1px; }
+
+        /* DRAGGABLE ELEMENTS */
+        .draggable { position: absolute; cursor: move; z-index: 100; }
+        .draggable.dragging { opacity: 0.8; z-index: 9000; }
+
+        .bento-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 250px;
+            gap: 1.5rem; padding: 0 5% 5rem; max-width: 1600px; margin: 0 auto; width: 100%;
+        }
+
+        .bento-card {
+            background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 16px;
+            padding: 2rem; position: relative; cursor: pointer; transition: all 0.3s ease;
+            display: flex; flex-direction: column; overflow: hidden;
+            opacity: 0; animation: fadeInUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .bento-card:nth-child(1) { animation-delay: 0.3s; }
+        .bento-card:nth-child(2) { animation-delay: 0.4s; }
+        .bento-card:nth-child(3) { animation-delay: 0.5s; }
+        .bento-card:nth-child(4) { animation-delay: 0.6s; }
+        .bento-card:nth-child(5) { animation-delay: 0.7s; }
+        .bento-card:nth-child(6) { animation-delay: 0.8s; }
+        .bento-card:nth-child(7) { animation-delay: 0.9s; }
+
+        .bento-card:hover { border-color: var(--line-color, var(--primary)); box-shadow: 0 0 30px rgba(0, 243, 255, 0.1); transform: translateY(-5px); }
+        
+        .bento-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--line-color, var(--primary)), transparent); 
+            transform: translateX(-100%); transition: transform 0.5s ease;
+        }
+        .bento-card:hover::before { transform: translateX(100%); }
+
+        /* CARD IMAGE SLOT */
+        .card-image-slot {
+            position: absolute; top: 1.2rem; right: 1.2rem;
+            width: 56px; height: 56px; border-radius: 10px;
+            border: 1px dashed rgba(255,255,255,0.12);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; overflow: hidden; transition: border-color 0.3s ease;
+            background: rgba(255,255,255,0.02);
+        }
+        .card-image-slot:hover { border-color: var(--line-color, var(--primary)); }
+        .card-image-slot img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        .card-image-slot .slot-placeholder {
+            font-size: 1.2rem; opacity: 0.2; pointer-events: none;
+        }
+        .card-image-slot input[type="file"] { display: none; }
+
+        .span-2-col { grid-column: span 2; }
+        .span-2-row { grid-row: span 2; }
+        .span-3-col { grid-column: span 3; }
+
+        @media (max-width: 1024px) { .bento-grid { grid-template-columns: repeat(2, 1fr); } .span-3-col { grid-column: span 2; } }
+        @media (max-width: 768px) { .bento-grid { grid-template-columns: 1fr; } .span-2-col, .span-2-row, .span-3-col { grid-column: span 1; grid-row: span 1; } .glitch-wrapper { font-size: 3rem; } .customize-panel { max-width: 100%; } }
+
+        .card-header { font-size: 0.9rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: auto; padding-right: 70px; }
+        .card-title { font-size: 2rem; font-family: 'Segoe UI', sans-serif; font-weight: bold; margin-top: 1rem; }
+        .card-desc { color: #666; margin-top: 0.5rem; font-size: 0.9rem; }
+        
+        .status-dot { display: inline-block; width: 8px; height: 8px; background: #0f0; border-radius: 50%; margin-right: 8px; box-shadow: 0 0 10px #0f0; animation: blink 2s infinite; }
+        .status-dot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* FULLY OFFLINE SCREEN */
+        .offline-message-container {
+            display: none; text-align: center; padding: 5rem 5%; width: 100%; margin: 0 auto; flex-grow: 1;
+            animation: fadeInUp 1s ease;
+        }
+        .offline-message-container.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .offline-icon { font-size: 4rem; color: var(--danger); margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 0, 60, 0.4); }
+        .offline-text { color: #888; font-size: 1.2rem; letter-spacing: 1px; }
+
+        /* FOLDER MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 10000;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content {
+            background: #0a0a0c; border: 1px solid var(--modal-accent, var(--primary));
+            width: 90%; max-width: 800px; max-height: 85vh; padding: 3rem; overflow-y: auto;
+            transform: translateY(50px) scale(0.95); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; box-shadow: 0 0 50px rgba(0, 243, 255, 0.1);
+        }
+        .modal-content::-webkit-scrollbar { width: 8px; }
+        .modal-content::-webkit-scrollbar-track { background: #050505; }
+        .modal-content::-webkit-scrollbar-thumb { background: var(--modal-accent, var(--primary)); }
+        .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
+
+        .close-btn {
+            position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none;
+            color: var(--danger); font-size: 2rem; cursor: pointer; transition: transform 0.3s ease;
+        }
+        .close-btn:hover { transform: scale(1.2) rotate(90deg); }
+        .modal-title { font-size: 2rem; margin-bottom: 2rem; color: #fff; font-family: 'Segoe UI', sans-serif; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        
+        .project-list { display: flex; flex-direction: column; gap: 1.5rem; }
+        .project-item {
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem; transition: all 0.3s ease; display: flex; flex-direction: column; align-items: flex-start;
+            cursor: pointer;
+        }
+        .project-item:hover { border-color: var(--modal-accent, var(--primary)); background: rgba(0, 243, 255, 0.05); }
+        .project-item-title { font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem; }
+        .tags { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+        .tag { background: rgba(0, 243, 255, 0.1); color: var(--modal-accent, var(--primary)); padding: 3px 10px; font-size: 0.75rem; border: 1px solid var(--modal-accent, var(--primary)); text-transform: uppercase; }
+        .project-item-desc { color: #888; font-size: 1rem; margin-bottom: 1.5rem; line-height: 1.5; }
+        
+        .action-btn {
+            background: transparent; color: var(--modal-accent, var(--primary)); padding: 10px 24px; border: 1px solid var(--modal-accent, var(--primary));
+            font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s ease;
+            text-transform: uppercase; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem;
+        }
+        .action-btn:hover { background: var(--modal-accent, var(--primary)); color: #000; box-shadow: 0 0 15px var(--modal-accent, var(--primary)); }
+        .action-btn.denied { color: var(--danger); border-color: var(--danger); pointer-events: none; opacity: 0.6; }
+
+        /* PROJECT DETAIL MODAL */
+        .detail-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92); backdrop-filter: blur(16px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; z-index: 10100;
+        }
+        .detail-overlay.active { opacity: 1; pointer-events: auto; }
+        .detail-content {
+            background: #08080b; border: 1px solid var(--modal-accent, var(--primary));
+            width: 90%; max-width: 900px; max-height: 88vh; padding: 3rem; overflow-y: auto;
+            transform: translateY(60px) scale(0.93); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; box-shadow: 0 0 60px rgba(0,243,255,0.12);
+        }
+        .detail-overlay.active .detail-content { transform: translateY(0) scale(1); }
+        .detail-content::-webkit-scrollbar { width: 8px; }
+        .detail-content::-webkit-scrollbar-track { background: #050505; }
+        .detail-content::-webkit-scrollbar-thumb { background: var(--modal-accent, var(--primary)); }
+
+        .detail-back {
+            position: absolute; top: 1.5rem; left: 1.5rem; background: none; border: none;
+            color: var(--modal-accent, var(--primary)); font-family: 'Courier New', monospace;
+            font-size: 0.85rem; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+            transition: opacity 0.2s; opacity: 0.7;
+        }
+        .detail-back:hover { opacity: 1; }
+        .detail-close {
+            position: absolute; top: 1.5rem; right: 1.5rem; background: none; border: none;
+            color: var(--danger); font-size: 2rem; cursor: pointer; transition: transform 0.3s ease;
+        }
+        .detail-close:hover { transform: scale(1.2) rotate(90deg); }
+
+        .detail-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-top: 1rem; }
+        .detail-title { font-size: 2.5rem; font-family: 'Segoe UI', sans-serif; color: #fff; margin-bottom: 0.5rem; }
+        .detail-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.8rem; }
+        .detail-desc { color: #aaa; font-size: 1rem; line-height: 1.7; margin-bottom: 2rem; }
+
+        .screenshots-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem; margin-bottom: 2rem;
+        }
+        .screenshot-upload-slot {
+            aspect-ratio: 16/9; border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 6px; cursor: pointer; transition: all 0.3s ease;
+            background: rgba(255,255,255,0.02); overflow: hidden; position: relative;
+        }
+        .screenshot-upload-slot:hover { border-color: var(--modal-accent, var(--primary)); background: rgba(0,243,255,0.04); }
+        .screenshot-upload-slot img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+        .screenshot-upload-slot .ss-label { font-size: 0.65rem; color: #444; letter-spacing: 1px; text-transform: uppercase; }
+        .screenshot-upload-slot .ss-icon { font-size: 1.5rem; opacity: 0.2; }
+        .screenshot-upload-slot input[type="file"] { display: none; }
+        .ss-add-btn {
+            background: transparent; border: 1px dashed rgba(0,243,255,0.2);
+            color: var(--modal-accent, var(--primary)); padding: 8px 20px; font-family: 'Courier New', monospace;
+            font-size: 0.75rem; cursor: pointer; letter-spacing: 1px; text-transform: uppercase;
+            transition: all 0.3s; margin-bottom: 1.5rem;
+        }
+        .ss-add-btn:hover { border-style: solid; background: rgba(0,243,255,0.06); }
+
+        .section-label { font-size: 0.7rem; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 1rem; }
+
+        /* FOOTER */
+        .site-footer {
+            margin-top: auto; padding: 2rem 5%; text-align: center; border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem; color: #444; letter-spacing: 2px; text-transform: uppercase; z-index: 10;
+        }
+
+        /* POLITICAL/ZAFER — KIRMIZI TEMA */
+        .political-card {
+            border-color: var(--danger) !important;
+            --line-color: var(--danger);
+        }
+        .political-card .card-header { color: var(--danger); }
+    </style>
+</head>
+<body>
+
+    <div class="scanlines"></div>
+
+    <div class="top-stats">
+        <span>USER: JAE7 // AUTH: ADMIN</span>
+        <span>SYS.UPTIME: 99.9% // ACTIVE_NODES: 09</span>
+        <span><span class="status-dot" id="sys-dot"></span>SERVER: <span id="sys-status-text">ONLINE</span></span>
+    </div>
+
+    <section class="hero" id="hero-section">
+        <div class="hero-inner">
+            <div class="hero-text" id="hero-text-block">
+                <div class="glitch-wrapper" id="draggable-title">
+                    <div class="glitch" data-text="JAE_INDUSTRIES" id="title-text">JAE_INDUSTRIES</div>
+                </div>
+                <p class="subtitle" id="draggable-subtitle">crafting digital realms. 𖤐</p>
+            </div>
+            <!-- CUSTOMIZE TOGGLE -->
+            <div style="display:flex; flex-direction:column; align-items:flex-end;" class="customize-toggle">
+                <button class="cp-toggle-btn" id="cp-toggle-btn" onclick="toggleCustomize()">
+                    <span class="cp-toggle-icon">✦</span> CUSTOMIZE_SYS
+                </button>
+                <!-- CUSTOMIZE PANEL -->
+                <div class="customize-panel" id="customize-panel">
+                <h4>>_ CUSTOMIZE_SYS</h4>
+                <div class="cp-row">
+                    <span class="cp-label">PRIMARY COLOR</span>
+                    <input type="color" class="cp-color" id="cp-primary" value="#00f3ff">
+                </div>
+                <div class="cp-row">
+                    <span class="cp-label">DANGER COLOR</span>
+                    <input type="color" class="cp-color" id="cp-danger" value="#ff003c">
+                </div>
+                <div class="cp-row">
+                    <span class="cp-label">BG COLOR</span>
+                    <input type="color" class="cp-color" id="cp-bg" value="#050505">
+                </div>
+                <div class="cp-row">
+                    <span class="cp-label">CARD OPACITY</span>
+                    <input type="range" class="cp-range" id="cp-opacity" min="0" max="100" value="85">
+                </div>
+                <div class="cp-row">
+                    <span class="cp-label">CARD RADIUS</span>
+                    <input type="range" class="cp-range" id="cp-radius" min="0" max="32" value="16">
+                </div>
+                <div class="cp-row">
+                    <span class="cp-label">GRID COLS</span>
+                    <input type="range" class="cp-range" id="cp-cols" min="2" max="5" value="4">
+                </div>
+                <div class="cp-row">
+                    <span class="cp-label">TITLE TEXT</span>
+                    <input type="text" id="cp-title" value="JAE_INDUSTRIES" style="background:transparent;border:1px solid rgba(0,243,255,0.2);color:#fff;font-family:'Courier New',monospace;font-size:0.7rem;padding:4px 8px;width:130px;outline:none;">
+                </div>
+                <div class="cp-row">
+                    <span class="cp-label">SUBTITLE</span>
+                    <input type="text" id="cp-subtitle" value="" placeholder="slogan..." style="background:transparent;border:1px solid rgba(0,243,255,0.2);color:#fff;font-family:'Courier New',monospace;font-size:0.65rem;padding:4px 8px;width:130px;outline:none;">
+                </div>
+                <button class="cp-reset" onclick="resetCustomization()">⟳ RESET TO DEFAULT</button>
+                <p class="cp-note">RESETS ON REFRESH</p>
+            </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FULLY OFFLINE SCREEN -->
+    <div class="offline-message-container" id="offline-screen">
+        <div class="offline-icon">⚠</div>
+        <h2 style="font-size: 2rem; color: #fff; margin-bottom: 10px;">SYSTEM OFFLINE</h2>
+        <p class="offline-text" id="offline-reason-text">SERVER MAINTENANCE IN PROGRESS.</p>
+    </div>
+
+    <div class="bento-grid" id="bento-grid">
+        
+        <div class="bento-card span-2-col span-2-row" style="background: linear-gradient(145deg, rgba(15,15,18,1) 0%, rgba(0,40,50,0.3) 100%);" onclick="openFolder('jaesystem')">
+            <div class="card-header">01 // CORE_SYSTEMS</div>
+            <div style="margin-top: auto;">
+                <h2 class="card-title" style="font-size: 3rem; color: var(--primary);">JaeSystem</h2>
+                <p class="card-desc" style="font-size: 1.1rem;">null.</p>
+            </div>
+        </div>
+
+        <div class="bento-card span-2-col" onclick="openFolder('bots')">
+            <div class="card-header">02 // AI_&_BOTS</div>
+            <div style="margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div>
+                    <h2 class="card-title">awe :3 & ayan</h2>
+                    <p class="card-desc">discord bot projects</p>
+                </div>
+                <div style="font-size: 2rem; color: var(--danger);">/>_</div>
+            </div>
+        </div>
+
+        <div class="bento-card" onclick="openFolder('jaeboard')">
+            <div class="card-header">03 // MOBILE_UI</div>
+            <div style="margin-top: auto;">
+                <h2 class="card-title">Jaeboard</h2>
+                <p class="card-desc">a smoother experience with premium perks</p>
+            </div>
+        </div>
+
+        <div class="bento-card" onclick="openFolder('lab')">
+            <div class="card-header">04 // THE_LAB</div>
+            <div style="margin-top: auto;">
+                <h2 class="card-title">Huyan</h2>
+                <p class="card-desc">experimental stuff and future projects</p>
+            </div>
+        </div>
+
+        <div class="bento-card span-3-col" onclick="openFolder('media')">
+            <div class="card-header">05 // MEDIA_PRODUCTION</div>
+            <div style="margin-top: auto; display: flex; align-items: center; gap: 2rem;">
+                <div style="flex: 1;">
+                    <h2 class="card-title">Emir Karaarslan Productions</h2>
+                    <p class="card-desc">GTA Turkish dubbing and localization projects</p>
+                </div>
+                <div style="flex: 1;">
+                    <h2 class="card-title" style="color: #ff0000;">YouTube</h2>
+                    <p class="card-desc">personal channel</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- POLITICAL & GRAVEYARD SPLIT -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <div class="bento-card political-card" style="padding: 1.2rem; cursor: pointer; animation-delay: 0.8s;" onclick="openFolder('zafer')">
+                <div class="card-header" style="font-size: 0.8rem; margin-bottom: 0; color: var(--danger);">06 // POLITICAL</div>
+                <div style="margin-top: auto;">
+                    <h2 class="card-title" style="font-size: 1.3rem; color: var(--danger); margin-top: 0.5rem;">Zafer Webapp</h2>
+                    <p class="card-desc" style="font-size: 0.75rem;">viva zafer, viva özdağ</p>
+                </div>
+            </div>
+            <div class="bento-card political-card" style="padding: 1.2rem; cursor: pointer; animation-delay: 0.9s;" onclick="openFolder('graveyard')">
+                <div class="card-header" style="font-size: 0.8rem; margin-bottom: 0; color: var(--danger);">07 // GRAVEYARD</div>
+                <div style="margin-top: auto;">
+                    <h2 class="card-title" style="font-size: 1.3rem; color: var(--danger); margin-top: 0.5rem;">Deceased Projects</h2>
+                    <p class="card-desc" style="font-size: 0.75rem;">cancelled or discontinued</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        JAE INDUSTRIES © <span id="current-year" style="color:inherit"></span> | ALL RIGHTS RESERVED
+        <p style="margin-top:5px;">𐱅𐰇𐰼𐰰</p>
+    </footer>
+
+    <!-- FOLDER MODAL -->
+    <div class="modal-overlay" id="folderModal">
+        <div class="modal-content" id="folder-modal-content">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <h2 class="modal-title" id="folder-title">DIR_NAME</h2>
+            <div class="project-list" id="project-list-container"></div>
+        </div>
+    </div>
+
+    <!-- PROJECT DETAIL MODAL -->
+    <div class="detail-overlay" id="detailModal">
+        <div class="detail-content" id="detail-modal-content">
+            <button class="detail-back" onclick="closeDetail()">← BACK</button>
+            <button class="detail-close" onclick="closeAllModals()">×</button>
+            <div class="detail-header">
+                <h2 class="detail-title" id="detail-title"></h2>
+                <div class="detail-tags" id="detail-tags"></div>
+            </div>
+            <p class="detail-desc" id="detail-desc"></p>
+            <p class="section-label">SCREENSHOTS</p>
+            <div class="screenshots-grid" id="screenshots-grid"></div>
+            <a href="#" id="detail-link" class="action-btn" style="margin-top:1rem;">→ GO TO PROJECT</a>
+        </div>
+    </div>
+
+    <script>
+        // --- JAE YETKİ KONTROL PANELİ --- //
+        const SYSTEM_STATE = 'ONLINE'; 
+        const SHUTDOWN_REASON = 'SİSTEM BAKIMI DEVAM EDİYOR. LÜTFEN DAHA SONRA TEKRAR DENEYİNİZ.';
+        // --------------------------------- //
+
+        document.getElementById('current-year').innerText = new Date().getFullYear();
+
+        // DEFAULT SETTINGS
+        const DEFAULTS = {
+            primary: '#00f3ff',
+            danger: '#ff003c',
+            bg: '#050505',
+            opacity: 85,
+            radius: 16,
+            cols: 4,
+            title: 'JAE_INDUSTRIES',
+            subtitle: 'the digital ecosystem. customization is not a feature, it\'s a lifestyle. >_ root access granted.'
+        };
+
+        // FOLDER & PROJECT DATA
+        const folderData = {
+            'jaesystem': {
+                folderName: 'DIR: /CORE_SYSTEMS',
+                accent: null,
+                projects: [
+                    { title: 'JaeSystem | 2026', tags: ['SYS.CORE', 'UI/UX', 'TERMINAL'], desc: 'null.', link: 'https://jaesystem.vercel.app/', logo: null, screenshots: [] }
+                ]
+            },
+            'bots': {
+                folderName: 'DIR: /AI_&_BOTS',
+                accent: null,
+                projects: [
+                    { title: 'awe :3 | 2026', tags: ['NODE.JS', 'ECONOMY', 'DISCORD'], desc: 'future\'s biggest rival of OwO.', link: '#', logo: null, screenshots: [] },
+                    { title: 'ayan | 2021', tags: ['AI', 'MODERATION', 'AUTOMATION'], desc: 'reincarnation of CeyhunBOT (2021). named after the perfectest girl ever (2026).', link: '#', logo: null, screenshots: [] }
+                ]
+            },
+            'jaeboard': {
+                folderName: 'DIR: /MOBILE_UI',
+                accent: null,
+                projects: [
+                    { title: 'Jaeboard | 2026', tags: ['ANDROID', 'CUSTOMIZATION', 'IOS'], desc: 'a keyboard where you can feel the premium while having extra emojis and unique perks, that nobody ever gave you before.', link: '#', logo: null, screenshots: [] }
+                ]
+            },
+            'lab': {
+                folderName: 'DIR: /THE_LAB',
+                accent: null,
+                projects: [
+                    { title: 'Nova Launcher', tags: ['ANDROID', 'INSPIRING', 'FUTURE'], desc: 'top app for android customization, not owned by us. yet?..', link: 'https://novalauncher.com/', logo: null, screenshots: [] },
+                    { title: 'Huyan | 2025', tags: ['CIPHER', 'RESTRICTED_ACCESS'], desc: 'a cipher alphabet only known by jae, that also has an app.', link: 'https://google.com/search?q=restricted+access', logo: null, screenshots: [] },
+                    { title: 'Archvault | 2026', tags: ['SYS.CORE', 'UI/UX', 'TERMINAL'], desc: 'a cleaner, smoother version of FetLife. under construction.', link: 'https://archvault-ck.vercel.app/', logo: null, screenshots: [] }
+                ]
+            },
+            'media': {
+                folderName: 'DIR: /MEDIA_PRODUCTION',
+                accent: null,
+                projects: [
+                    { title: 'Emir Karaarslan Productions', tags: ['GTA', 'DUBBING', 'LOCALIZATION'], desc: 'GTA Turkish dubbing and localization projects.', link: 'https://emirkaraarslanprod.vercel.app/', logo: null, screenshots: [] },
+                    { title: 'YouTube Channel', tags: ['ALIGHT MOTION', 'FEMBOYS', 'EDITING'], desc: 'random stuff.', link: 'https://youtube.com/channel/UCpe4q71g6VQ3WDzWGsexn3A', logo: null, screenshots: [] }
+                ]
+            },
+            'zafer': {
+                folderName: 'DIR: /POLITICAL',
+                accent: 'var(--danger)',
+                projects: [
+                    { title: 'Zafer Webapp | 2026', tags: ['POLITICAL', 'WEB', 'ANDROID', 'RESTRICTED_ACCESS'], desc: 'not for public.', link: 'https://google.com/search?q=restricted+access', logo: null, screenshots: [] }
+                ]
+            },
+            'graveyard': {
+                folderName: 'DIR: /GRAVEYARD',
+                accent: 'var(--danger)',
+                projects: [
+                    { title: 'Ceyhun Apps & Games | 2021-2022', tags: ['DEV', 'ANDROID', 'R.I.P'], desc: 'nephew of Rockstar Games. died due to poor quality.', link: 'https://www.youtube.com/@CeyhunAppsGames/featured', logo: 'cag.png', screenshots: ['cag1.png', 'cag2.png', 'cag3.png'] },
+                    { title: 'CeyhunBOT | 2021-2025', tags: ['DISCORD', 'DEPRECATED', 'R.I.P'], desc: 'the original, predecessor to ayan. rest in peace.', link: '#', logo: null, screenshots: [] },
+                ]
+            }
+        };
+
+        let currentFolderId = null;
+        let currentProjectIndex = null;
+
+        const folderModal = document.getElementById('folderModal');
+        const folderModalContent = document.getElementById('folder-modal-content');
+        const fTitle = document.getElementById('folder-title');
+        const pListContainer = document.getElementById('project-list-container');
+        const detailModal = document.getElementById('detailModal');
+        const detailModalContent = document.getElementById('detail-modal-content');
+
+        // SYSTEM STATE INIT
+        function initSystemState() {
+            const dot = document.getElementById('sys-dot');
+            const statusText = document.getElementById('sys-status-text');
+            const grid = document.getElementById('bento-grid');
+            const offlineScreen = document.getElementById('offline-screen');
+            const reasonText = document.getElementById('offline-reason-text');
+
+            if (SYSTEM_STATE === 'OFFLINE' || SYSTEM_STATE === 'FULLY_OFFLINE') {
+                dot.classList.add('offline');
+                statusText.innerText = 'OFFLINE';
+                statusText.style.color = 'var(--danger)';
+            }
+
+            if (SYSTEM_STATE === 'FULLY_OFFLINE') {
+                grid.style.display = 'none';
+                offlineScreen.classList.add('active');
+                reasonText.innerText = SHUTDOWN_REASON;
+                resetCustomization(); // OFFLINE → reset
+            }
+        }
+
+        // SET MODAL ACCENT COLOR
+        function setModalAccent(accent) {
+            const accentVal = accent || 'var(--primary)';
+            document.documentElement.style.setProperty('--modal-accent', accentVal);
+            folderModalContent.style.borderColor = accent ? 'var(--danger)' : '';
+            detailModalContent.style.borderColor = accent ? 'var(--danger)' : '';
+        }
+
+        // OPEN FOLDER
+        function openFolder(id) {
+            if (SYSTEM_STATE === 'FULLY_OFFLINE') return;
+            currentFolderId = id;
+            const data = folderData[id];
+            setModalAccent(data.accent);
+            fTitle.innerText = data.folderName;
+            pListContainer.innerHTML = '';
+
+            data.projects.forEach((proj, idx) => {
+                const tagsHtml = proj.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+                const isOffline = SYSTEM_STATE === 'OFFLINE';
+                const btnClass = isOffline ? 'action-btn denied' : 'action-btn';
+                const btnText = isOffline ? '>_ ACCESS DENIED' : '>_ VIEW DETAILS';
+
+                const projectHtml = `
+                    <div class="project-item" onclick="openDetail(${idx})">
+                        <h3 class="project-item-title">${proj.title}</h3>
+                        <div class="tags">${tagsHtml}</div>
+                        <p class="project-item-desc">${proj.desc}</p>
+                        <span class="${btnClass}">${btnText}</span>
+                    </div>
+                `;
+                pListContainer.innerHTML += projectHtml;
+            });
+
+            folderModal.classList.add('active');
+        }
+
+        // OPEN PROJECT DETAIL
+        function openDetail(projectIdx) {
+            if (SYSTEM_STATE === 'OFFLINE') return;
+            currentProjectIndex = projectIdx;
+            const proj = folderData[currentFolderId].projects[projectIdx];
+            const accent = folderData[currentFolderId].accent;
+            setModalAccent(accent);
+
+            document.getElementById('detail-title').innerText = proj.title;
+            document.getElementById('detail-desc').innerText = proj.desc;
+
+            const tagsEl = document.getElementById('detail-tags');
+            tagsEl.innerHTML = proj.tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+            // LOGO (kod üzerinden eklenir)
+            const existingLogo = document.getElementById('detail-logo');
+            if (existingLogo) existingLogo.remove();
+            if (proj.logo) {
+                const logoImg = document.createElement('img');
+                logoImg.id = 'detail-logo';
+                logoImg.src = proj.logo;
+                logoImg.style.cssText = 'width:80px;height:80px;object-fit:contain;border-radius:12px;position:absolute;top:1.5rem;right:5rem;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);padding:8px;box-sizing:border-box;';
+                document.getElementById('detail-modal-content').appendChild(logoImg);
+            }
+
+            const link = document.getElementById('detail-link');
+            link.href = proj.link;
+
+            renderScreenshots();
+            detailModal.classList.add('active');
+        }
+
+        // RENDER SCREENSHOTS (read-only — kod üzerinden eklenir, max 3)
+        function renderScreenshots() {
+            const proj = folderData[currentFolderId].projects[currentProjectIndex];
+            const grid = document.getElementById('screenshots-grid');
+            grid.innerHTML = '';
+
+            const shots = (proj.screenshots || []).slice(0, 3);
+            shots.forEach((src) => {
+                const slot = document.createElement('div');
+                slot.className = 'screenshot-upload-slot';
+                slot.style.cursor = 'default';
+                slot.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+                grid.appendChild(slot);
+            });
+
+            if (shots.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'screenshot-upload-slot';
+                empty.style.cursor = 'default';
+                empty.innerHTML = `<span class="ss-icon">🖼</span><span class="ss-label">NO SCREENSHOTS YET</span>`;
+                grid.appendChild(empty);
+            }
+        }
+
+        function closeModal() { folderModal.classList.remove('active'); }
+        function closeDetail() { detailModal.classList.remove('active'); }
+        function closeAllModals() { closeModal(); closeDetail(); }
+
+        // CLICK OUTSIDE TO CLOSE
+        folderModal.addEventListener('click', (e) => { if (e.target === folderModal) closeModal(); });
+        detailModal.addEventListener('click', (e) => { if (e.target === detailModal) closeAllModals(); });
+
+        // ESC KEY
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (detailModal.classList.contains('active')) closeDetail();
+                else if (folderModal.classList.contains('active')) closeModal();
+            }
+        });
+
+        // CUSTOMIZE TOGGLE
+        function toggleCustomize() {
+            const panel = document.getElementById('customize-panel');
+            const btn = document.getElementById('cp-toggle-btn');
+            const isOpen = panel.classList.toggle('open');
+            btn.classList.toggle('open', isOpen);
+        }
+
+        // =====================
+        // CUSTOMIZATION SYSTEM
+        // =====================
+        function applyCustomization(cfg) {
+            const root = document.documentElement;
+            root.style.setProperty('--primary', cfg.primary);
+            root.style.setProperty('--danger', cfg.danger);
+            root.style.setProperty('--bg-deep', cfg.bg);
+            document.body.style.backgroundColor = cfg.bg;
+
+            const op = cfg.opacity / 100;
+            root.style.setProperty('--panel-bg', `rgba(15, 15, 18, ${op})`);
+
+            document.querySelectorAll('.bento-card').forEach(c => {
+                c.style.borderRadius = cfg.radius + 'px';
+            });
+
+            const grid = document.getElementById('bento-grid');
+            grid.style.gridTemplateColumns = `repeat(${cfg.cols}, 1fr)`;
+
+            const titleEl = document.getElementById('title-text');
+            titleEl.innerText = cfg.title;
+            titleEl.setAttribute('data-text', cfg.title);
+
+            const subtitleEl = document.getElementById('draggable-subtitle');
+            subtitleEl.innerText = cfg.subtitle;
+
+            // Sync inputs
+            document.getElementById('cp-primary').value = cfg.primary;
+            document.getElementById('cp-danger').value = cfg.danger;
+            document.getElementById('cp-bg').value = cfg.bg;
+            document.getElementById('cp-opacity').value = cfg.opacity;
+            document.getElementById('cp-radius').value = cfg.radius;
+            document.getElementById('cp-cols').value = cfg.cols;
+            document.getElementById('cp-title').value = cfg.title;
+            document.getElementById('cp-subtitle').value = cfg.subtitle;
+        }
+
+        function resetCustomization() {
+            applyCustomization({ ...DEFAULTS });
+        }
+
+        function saveCustomization() {
+            const cfg = {
+                primary: document.getElementById('cp-primary').value,
+                danger: document.getElementById('cp-danger').value,
+                bg: document.getElementById('cp-bg').value,
+                opacity: parseInt(document.getElementById('cp-opacity').value),
+                radius: parseInt(document.getElementById('cp-radius').value),
+                cols: parseInt(document.getElementById('cp-cols').value),
+                title: document.getElementById('cp-title').value || DEFAULTS.title,
+                subtitle: document.getElementById('cp-subtitle').value || DEFAULTS.subtitle
+            };
+            applyCustomization(cfg);
+        }
+
+        // BIND CUSTOMIZE INPUTS
+        ['cp-primary','cp-danger','cp-bg'].forEach(id => {
+            document.getElementById(id).addEventListener('input', saveCustomization);
+        });
+        ['cp-opacity','cp-radius','cp-cols'].forEach(id => {
+            document.getElementById(id).addEventListener('input', saveCustomization);
+        });
+        ['cp-title','cp-subtitle'].forEach(id => {
+            document.getElementById(id).addEventListener('input', saveCustomization);
+        });
+
+        // INIT
+        window.onload = initSystemState;
+    </script>
+</body>
+</html>
