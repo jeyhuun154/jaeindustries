@@ -1,65 +1,143 @@
-function showVerificationPopup() {
-    const overlay = document.createElement('div');
-    overlay.id = 'verification-overlay';
-    overlay.style.cssText = `
-        position:fixed; inset:0; background:rgba(0,0,0,0.8);
-        backdrop-filter:blur(10px); display:flex; justify-content:center;
-        align-items:center; z-index:99999;
+// v.js — Owner Verification Display
+// Only renders on /verification
+
+(function () {
+    'use strict';
+
+    const path = window.location.pathname.replace(/\/+$/, '');
+    if (path !== '/verification') return;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0d0d0d;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+            color: #fff;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: -1;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 90%, rgba(88,86,214,0.4) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 80% 10%, rgba(41,151,255,0.3) 0%, transparent 55%),
+                linear-gradient(160deg, #0d0d12 0%, #0a0a18 40%, #0c0818 100%);
+        }
+
+        #vfy-card {
+            width: 90%; max-width: 400px;
+            background: rgba(28,28,32,0.92);
+            backdrop-filter: blur(50px) saturate(200%);
+            -webkit-backdrop-filter: blur(50px) saturate(200%);
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+            padding: 36px 32px 32px;
+            display: flex; flex-direction: column; gap: 20px;
+            animation: fadeUp 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .vfy-eyebrow {
+            font-size: 11px; font-weight: 500;
+            color: rgba(255,255,255,0.35); letter-spacing: 0.3px;
+        }
+
+        .vfy-title {
+            font-size: 22px; font-weight: 600;
+            color: #fff; letter-spacing: -0.4px;
+            margin-top: 4px;
+        }
+
+        .vfy-divider {
+            border: none; border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .vfy-row {
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .vfy-label {
+            font-size: 11px; font-weight: 500;
+            color: rgba(255,255,255,0.35); letter-spacing: 0.3px;
+        }
+        .vfy-value {
+            font-size: 15px; color: rgba(255,255,255,0.9);
+        }
+        .vfy-value.vfy-ticket {
+            font-size: 28px; font-weight: 700;
+            color: #2997ff; letter-spacing: -0.5px;
+        }
+        .vfy-value.vfy-mono {
+            font-family: "SF Mono", "Courier New", monospace;
+            font-size: 13px; color: rgba(255,255,255,0.6);
+        }
+
+        .vfy-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: rgba(48,209,88,0.1);
+            border: 1px solid rgba(48,209,88,0.25);
+            border-radius: 8px;
+            padding: 6px 11px;
+            font-size: 12px; font-weight: 500; color: #30d158;
+            width: fit-content;
+        }
+        .vfy-badge-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #30d158;
+            box-shadow: 0 0 6px #30d158;
+            animation: vfyBlink 2s infinite;
+        }
+        @keyframes vfyBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
     `;
+    document.head.appendChild(style);
 
-    overlay.innerHTML = `
-        <div style="
-            background:#0a0a0c; border:1px solid rgba(255,255,255,0.1);
-            border-radius:16px; width:90%; max-width:500px; padding:3rem;
-            position:relative; box-shadow:0 0 50px rgba(0,0,0,0.6);
-        ">
-            <button id="verification-close-btn" style="
-                position:absolute; top:1.5rem; right:1.5rem;
-                background:none; border:none; color:#ff003c;
-                font-size:2rem; cursor:pointer; line-height:1;
-                transition:transform 0.3s ease;
-            " onmouseover="this.style.transform='scale(1.2) rotate(90deg)'"
-               onmouseout="this.style.transform='scale(1) rotate(0deg)'">×</button>
+    const card = document.createElement('div');
+    card.id = 'vfy-card';
+    card.innerHTML = `
+        <div>
+            <div class="vfy-eyebrow">jae-industries.vercel.app · /verification</div>
+            <div class="vfy-title">Owner Verification</div>
+        </div>
 
-            <div style="font-size:0.75rem; color:#666; letter-spacing:2px; text-transform:uppercase; margin-bottom:1rem;">
-                DOMAIN VERIFICATION
-            </div>
-            <div style="font-size:2rem; font-family:'Segoe UI',sans-serif; font-weight:700; color:#fff; margin-bottom:2rem;">
-                Jae Industries
-            </div>
+        <hr class="vfy-divider">
 
-            <hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin-bottom:2rem;">
+        <div class="vfy-row">
+            <span class="vfy-label">TICKET NUMBER</span>
+            <span class="vfy-value vfy-ticket">1572630</span>
+        </div>
 
-            <div style="font-size:0.75rem; color:#666; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.5rem;">OWNER</div>
-            <div style="font-size:1rem; color:#aaa; margin-bottom:1.5rem;">ckceyhun2@gmail.com</div>
+        <hr class="vfy-divider">
 
-            <div style="font-size:0.75rem; color:#666; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.5rem;">DOMAIN</div>
-            <div style="font-size:1rem; color:#aaa; margin-bottom:1.5rem;">jae-industries.vercel.app</div>
+        <div class="vfy-row">
+            <span class="vfy-label">OWNER</span>
+            <span class="vfy-value">Ceyhun Karaarslan</span>
+        </div>
 
-            <div style="font-size:0.75rem; color:#666; letter-spacing:2px; text-transform:uppercase; margin-bottom:0.5rem;">VERIFICATION TOKEN</div>
-            <div style="font-size:1rem; color:#aaa; margin-bottom:2rem; font-family:'Courier New',monospace;">JAE-2025-XXXXXX</div>
+        <div class="vfy-row">
+            <span class="vfy-label">EMAIL</span>
+            <span class="vfy-value vfy-mono">ckceyhun2@gmail.com</span>
+            <span class="vfy-value vfy-mono">ceyhunkaraarslan40@gmail.com</span>
+        </div>
 
-            <hr style="border:none; border-top:1px solid rgba(255,255,255,0.1); margin-bottom:1.5rem;">
+        <div class="vfy-row">
+            <span class="vfy-label">DOMAIN</span>
+            <span class="vfy-value vfy-mono">jae-industries.vercel.app</span>
+        </div>
 
-            <div style="display:flex; align-items:center; gap:8px; font-size:0.75rem; color:#666; letter-spacing:1px; text-transform:uppercase;">
-                <div style="width:8px; height:8px; border-radius:50%; background:#0f0; box-shadow:0 0 10px #0f0; flex-shrink:0;"></div>
-                VERIFIED — ${new Date().toUTCString()}
-            </div>
+        <hr class="vfy-divider">
+
+        <div class="vfy-badge">
+            <div class="vfy-badge-dot"></div>
+            Verified Owner
         </div>
     `;
 
-    document.body.appendChild(overlay);
-
-    document.getElementById('verification-close-btn').addEventListener('click', function() {
-        document.getElementById('verification-overlay').remove();
-        window.history.pushState({}, '', '/');
-    });
-}
-
-if (window.location.pathname === '/verification') {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', showVerificationPopup);
-    } else {
-        showVerificationPopup();
-    }
-}
+    document.body.appendChild(card);
+})();
