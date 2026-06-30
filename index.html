@@ -28,7 +28,7 @@
             display: flex; justify-content: space-between; padding: 10px 5%; background: #000;
             border-bottom: 1px solid var(--danger); font-size: 0.85rem; color: var(--danger);
             text-transform: uppercase; letter-spacing: 2px;
-            animation: fadeInDown 0.5s ease;
+            animation: fadeInDown 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
         .hero { padding: 6rem 5% 4rem; display: flex; flex-direction: column; justify-content: center; position: relative; }
@@ -40,7 +40,7 @@
         .glitch-wrapper {
             font-size: 5rem; font-weight: 900; text-transform: uppercase; position: relative;
             display: inline-block; margin-bottom: 1rem; font-family: 'Segoe UI', sans-serif; letter-spacing: -2px;
-            animation: fadeInUp 0.6s ease; cursor: move; user-select: none;
+            animation: fadeInUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) both; cursor: move; user-select: none;
         }
 
         .glitch { position: relative; color: white; text-shadow: 0 0 20px rgba(0,243,255,0.4); }
@@ -67,11 +67,11 @@
             100% { clip-path: polygon(0 70%, 100% 70%, 100% 75%, 0 75%); }
         }
 
-        .subtitle { color: #888; font-size: 1.1rem; max-width: 600px; animation: fadeInUp 0.6s ease 0.1s both; cursor: move; user-select: none; }
+        .subtitle { color: #888; font-size: 1.1rem; max-width: 600px; animation: fadeInUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both; cursor: move; user-select: none; }
 
         /* CUSTOMIZE TOGGLE BUTTON */
         .customize-toggle {
-            flex: 0 0 auto; animation: fadeInUp 0.6s ease 0.15s both; align-self: flex-start;
+            flex: 0 0 auto; animation: fadeInUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) 0.22s both; align-self: flex-start;
         }
         .cp-toggle-btn {
             background: rgba(10,10,14,0.9); border: 1px solid rgba(0,243,255,0.2);
@@ -319,15 +319,15 @@
         .bento-card {
             background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 16px;
             padding: 2rem; position: relative; cursor: pointer; transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease; display: flex; flex-direction: column; overflow: hidden;
-            opacity: 0; animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0; animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-        .bento-card:nth-child(1) { animation-delay: 0.1s; }
-        .bento-card:nth-child(2) { animation-delay: 0.18s; }
-        .bento-card:nth-child(3) { animation-delay: 0.26s; }
-        .bento-card:nth-child(4) { animation-delay: 0.34s; }
-        .bento-card:nth-child(5) { animation-delay: 0.42s; }
-        .bento-card:nth-child(6) { animation-delay: 0.5s; }
-        .bento-card:nth-child(7) { animation-delay: 0.58s; }
+        .bento-card:nth-child(1) { animation-delay: 0.3s; }
+        .bento-card:nth-child(2) { animation-delay: 0.37s; }
+        .bento-card:nth-child(3) { animation-delay: 0.44s; }
+        .bento-card:nth-child(4) { animation-delay: 0.51s; }
+        .bento-card:nth-child(5) { animation-delay: 0.58s; }
+        .bento-card:nth-child(6) { animation-delay: 0.65s; }
+        .bento-card:nth-child(7) { animation-delay: 0.72s; }
         .bento-card:hover { border-color: var(--line-color, var(--primary)); box-shadow: 0 0 30px rgba(0, 243, 255, 0.1); transform: translateY(-5px); }
         .bento-card::before {
             content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
@@ -349,11 +349,11 @@
         .status-dot.offline { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(26px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-14px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes panelDropDown { from { opacity: 0; transform: translateY(-10px) scaleY(0.95); transform-origin: top right; } to { opacity: 1; transform: translateY(0) scaleY(1); transform-origin: top right; } }
 
-        .offline-message-container { display: none; text-align: center; padding: 5rem 5%; width: 100%; margin: 0 auto; flex-grow: 1; animation: fadeInUp 1s ease; }
+        .offline-message-container { display: none; text-align: center; padding: 5rem 5%; width: 100%; margin: 0 auto; flex-grow: 1; animation: fadeInUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; }
         .offline-message-container.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .offline-icon { font-size: 4rem; color: var(--danger); margin-bottom: 1rem; text-shadow: 0 0 20px rgba(255, 0, 60, 0.4); }
         .offline-text { color: #888; font-size: 1.2rem; letter-spacing: 1px; }
